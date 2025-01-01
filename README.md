@@ -26,7 +26,7 @@ Huazhong University of Science and Technology (HUST)
 
 - **More than 21.8× faster** convergence with **VA-VAE** and **LightningDiT** than original DiT!
 
-- **Surpass DiT （FID=2.11） with only 8 GPUs in 10 hours**. Let's make diffusion transformers research more affordable!
+- **Surpass DiT with FID=2.11 with only 8 GPUs in about 10 hours**. Let's make diffusion transformers research more affordable!
 
 ## 📰 News
 
