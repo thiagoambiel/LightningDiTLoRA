@@ -88,7 +88,7 @@ pip install -r requirements.txt
 
     Run:
     ```
-    bash bash run_fast_inference.sh configs/lightningdit_xl_vavae_f16d32.yaml
+    bash bash run_fast_inference.sh ${config_path}
     ```
     Images will be saved into ``demo_images/demo_samples.png``, e.g. the following one:
     <div align="center">
@@ -99,7 +99,7 @@ pip install -r requirements.txt
     
     Run:
     ```
-    bash run_inference.sh configs/lightningdit_xl_vavae_f16d32.yaml
+    bash run_inference.sh ${config_path}
     ```
     NOTE: The FID result reported by the script serves as a reference value. The final FID-50k reported in paper is evaluated with ADM:
 
@@ -116,29 +116,9 @@ pip install -r requirements.txt
 - **We provide a 👆[detailed tutorial](docs/tutorial.md) for training your own models of 2.1 FID score within only 64 epochs. It takes only about 10 hours with 8 x H800 GPUs.** 
 
 
-<!-- - Extract feature first. LightninDiT could alse get great performance with SD-VAE. We will integrated this feature later.
-
-    ```
-    bash run_extract_feature.sh tokenizer/configs/vavae_f16d32.yaml
-    ```
-
-- Run the following command to start training. 
-    
-    We provide a reference log of our training process. With 8 x H800 GPUs, it takes about **only 10 hours** to surpass the performance of original DiT. Hope you enjoy it.
-
-    ```
-    bash run_train.sh tokenizer/configs/vavae_f16d32.yaml
-    ```
-
-- Run the following command to start inference.
-
-    ```
-    bash run_inference.sh tokenizer/configs/vavae_f16d32.yaml
-    ``` -->
-
 ## ❤️ Acknowledgements
 
-- This repo is mainly built on [DiT](https://github.com/facebookresearch/DiT), [FastDiT](https://github.com/chuanyangjin/fast-DiT) and [SiT](https://github.com/willisma/SiT). Our VAVAE codes are mainly built with [LDM](https://github.com/CompVis/latent-diffusion) and [MAR](https://github.com/LTH14/mar). Thanks for all these great works.
+This repo is mainly built on [DiT](https://github.com/facebookresearch/DiT), [FastDiT](https://github.com/chuanyangjin/fast-DiT) and [SiT](https://github.com/willisma/SiT). Our VAVAE codes are mainly built with [LDM](https://github.com/CompVis/latent-diffusion) and [MAR](https://github.com/LTH14/mar). Thanks for all these great works.
 
 ## 📝 Citation
 
