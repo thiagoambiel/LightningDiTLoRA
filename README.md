@@ -37,7 +37,9 @@ Huazhong University of Science and Technology (HUST)
 
 ## 📰 News
 
-- **[2025.01.02]** 🎉 We release the code and paper for VA-VAE and LightningDiT! The weights and pre-extracted latents will be released soon.
+- **[2025.01.02]** We have released the pre-trained weights.
+
+- **[2025.01.01]** We release the code and paper for VA-VAE and LightningDiT! The weights and pre-extracted latents will be released soon.
 
 ## 📄 Introduction
 
@@ -70,14 +72,17 @@ pip install -r requirements.txt
 
 ### Inference with Pre-trained Models
 
-- Download pre-trained DiT weights and [VA-VAE weights]() (to be released), pre-computed [latent infos]() (to be released soon).
-<!-- 
-    |    Gen Model     |    Training Epochs    | FID-50k (w/o cfg) | FID-50k (w/ cfg) |  Download  |
-    |:----------------:|:---------------------:|:-----------------:|:----------------:|:----------:|
-    | LightningDiT-XL  |          64           |       5.15        |       2.11       | [checkpoint]() (to be released) |
-    |                  |          800          |       2.21        |       1.35       | [checkpoint]() (to be released) |
+- Download weights and data infos:
 
-    Modify ``configs/lightningdit_xl_vavae_f16d32.yaml`` and ``tokenizer/configs/vavae_f16d32.yaml``. -->
+    - Download pre-trained models
+        | Tokenizer | Generation Model | rFID | FID |
+        |:---------:|:----------------|:----:|:---:|
+        | [VA-VAE]((https://huggingface.co/hustvl/vavae-imagenet256-f16d32-dinov2/blob/main/vavae-imagenet256-f16d32-dinov2.pt)) | [LightningDiT-XL-800ep](https://huggingface.co/hustvl/lightningdit-xl-imagenet256-800ep/blob/main/lightningdit-xl-imagenet256-800ep.pt) | 2.17 | 1.35 |
+        |           | [LightningDiT-XL-64ep](https://huggingface.co/hustvl/lightningdit-xl-imagenet256-64ep/blob/main/lightningdit-xl-imagenet256-64ep.pt) | 5.14 | 2.11 |
+
+    - Download [latent statistics](https://huggingface.co/hustvl/vavae-imagenet256-f16d32-dinov2/blob/main/latents_stats.pt). This file contains the channel-wise mean and standard deviation statistics.
+
+    - Modify config file in ``configs/reproductions`` as required. 
 
 - Fast sample demo images:
 
