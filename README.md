@@ -75,7 +75,7 @@ pip install -r requirements.txt
 - Download weights and data infos:
 
     - Download pre-trained models
-        | Tokenizer | Generation Model | rFID | FID |
+        | Tokenizer | Generation Model | FID | FID cfg |
         |:---------:|:----------------|:----:|:---:|
         | [VA-VAE](https://huggingface.co/hustvl/vavae-imagenet256-f16d32-dinov2/blob/main/vavae-imagenet256-f16d32-dinov2.pt) | [LightningDiT-XL-800ep](https://huggingface.co/hustvl/lightningdit-xl-imagenet256-800ep/blob/main/lightningdit-xl-imagenet256-800ep.pt) | 2.17 | 1.35 |
         |           | [LightningDiT-XL-64ep](https://huggingface.co/hustvl/lightningdit-xl-imagenet256-64ep/blob/main/lightningdit-xl-imagenet256-64ep.pt) | 5.14 | 2.11 |
