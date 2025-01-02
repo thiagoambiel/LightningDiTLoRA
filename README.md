@@ -1,6 +1,8 @@
 <div align="center">
 
-## ⚡Reconstruction v.s. Generation: Taming Optimization Dilemma in Latent Diffusion Models
+<h2>⚡Reconstruction v.s. Generation？
+
+Taming Optimization Dilemma in Latent Diffusion Models</h2>
 
 **_FID=1.35 on ImageNet-256 & 21.8x faster training than DiT!_**
 
@@ -10,10 +12,15 @@ Huazhong University of Science and Technology (HUST)
 
 *Corresponding author: xgwang@hust.edu.cn
 
-[![arXiv](https://img.shields.io/badge/arXiv-VA_VAE-b31b1b.svg)]()
-[![arXiv](https://img.shields.io/badge/arXiv-FasterDiT-b31b1b.svg)](https://arxiv.org/abs/2410.10356)
+
+<!-- [![arXiv](https://img.shields.io/badge/arXiv-VA_VAE-b31b1b.svg)]()
+[![arXiv](https://img.shields.io/badge/arXiv-FasterDiT-b31b1b.svg)](https://arxiv.org/abs/2410.10356) -->
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![authors](https://img.shields.io/badge/by-hustvl-green)](https://github.com/hustvl)
+[![paper](https://img.shields.io/badge/preprint-VA_VAE-b31b1b.svg)](paper/vavae_0102-1418.pdf)
+[![arXiv](https://img.shields.io/badge/arXiv-FasterDiT-b31b1b.svg)](https://arxiv.org/abs/2410.10356)
+
+
 
 </div>
 <div align="center">
