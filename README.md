@@ -77,7 +77,7 @@ pip install -r requirements.txt
     - Download pre-trained models
         | Tokenizer | Generation Model | rFID | FID |
         |:---------:|:----------------|:----:|:---:|
-        | [VA-VAE]((https://huggingface.co/hustvl/vavae-imagenet256-f16d32-dinov2/blob/main/vavae-imagenet256-f16d32-dinov2.pt)) | [LightningDiT-XL-800ep](https://huggingface.co/hustvl/lightningdit-xl-imagenet256-800ep/blob/main/lightningdit-xl-imagenet256-800ep.pt) | 2.17 | 1.35 |
+        | [VA-VAE](https://huggingface.co/hustvl/vavae-imagenet256-f16d32-dinov2/blob/main/vavae-imagenet256-f16d32-dinov2.pt) | [LightningDiT-XL-800ep](https://huggingface.co/hustvl/lightningdit-xl-imagenet256-800ep/blob/main/lightningdit-xl-imagenet256-800ep.pt) | 2.17 | 1.35 |
         |           | [LightningDiT-XL-64ep](https://huggingface.co/hustvl/lightningdit-xl-imagenet256-64ep/blob/main/lightningdit-xl-imagenet256-64ep.pt) | 5.14 | 2.11 |
 
     - Download [latent statistics](https://huggingface.co/hustvl/vavae-imagenet256-f16d32-dinov2/blob/main/latents_stats.pt). This file contains the channel-wise mean and standard deviation statistics.
@@ -113,7 +113,7 @@ pip install -r requirements.txt
 ## 🎮 Train Your Own Models
 
  
-- **We provide a 👆[detailed tutorial](docs/tutorial.md) for training your own models of 2.05 FID score within only 64 epochs. It takes only about 10 hours with 8 x H800 GPUs.** 
+- **We provide a 👆[detailed tutorial](docs/tutorial.md) for training your own models of 2.1 FID score within only 64 epochs. It takes only about 10 hours with 8 x H800 GPUs.** 
 
 
 <!-- - Extract feature first. LightninDiT could alse get great performance with SD-VAE. We will integrated this feature later.
