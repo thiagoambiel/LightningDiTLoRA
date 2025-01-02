@@ -1,6 +1,6 @@
 <div align="center">
 
-## ⚡Taming Optimization Dilemma in Latent Diffusion via Vision Foundation Model Aligned VAE
+## ⚡Reconstruction v.s. Generation: Taming Optimization Dilemma in Latent Diffusion Models
 
 **_FID=1.35 on ImageNet-256 & 21.8x faster training than DiT!_**
 
@@ -135,7 +135,7 @@ If you find our work useful, please consider to cite our related paper:
 ```
 # arxiv preprint TODO
 @article{vavae,
-  title={Taming Optimization Dilemma in Latent Diffusion via Vision Foundation Model Aligned VAE},
+  title={Reconstruction v.s. Generation: Taming Optimization Dilemma in Latent Diffusion},
   author={Yao, Jingfeng and Wang, Xinggang},
   journal={to be released},
   year={2025}
