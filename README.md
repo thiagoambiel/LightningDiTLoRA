@@ -1,6 +1,6 @@
 <div align="center">
 
-<h2>⚡Reconstruction v.s. Generation:
+<h2>⚡Reconstruction <i>v.s.</i> Generation:
 
 Taming Optimization Dilemma in Latent Diffusion Models</h2>
 

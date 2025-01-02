@@ -1,14 +1,8 @@
 ### Get Vision Foundation Model Aligned VAE (VA-VAE).
 
-- Download our pre-trained checkpoint from [here]() (to be released) . It is a pre-trained LDM (VQGAN-KL) VAE with 16x downsample ratio and 32-channel latent dimension (f16d32).
+- Download our pre-trained checkpoint from [here](https://huggingface.co/hustvl/vavae-imagenet256-f16d32-dinov2/blob/main/vavae-imagenet256-f16d32-dinov2.pt). It is a pre-trained LDM (VQGAN-KL) VAE with 16x downsample ratio and 32-channel latent dimension (f16d32).
 
 - Modify `tokenizer/configs/vavae_f16d32.yaml` to use your own checkpoint path.
-
-- (Optional) Evaluate the reconstruction performance of VA-VAE with the following command. **TODO**
-
-    ```
-    bash run_tokenizer_eval.sh tokenizer/configs/vavae_f16d32.yaml
-    ```
 
 ### Extract ImageNet Latents
 
@@ -20,7 +14,7 @@
     bash run_extraction.sh tokenizer/configs/vavae_f16d32.yaml
     ```
 
-- (Optional) Also, you can download our pre-extracted ImageNet latents from [here]() (to be released).
+- (Optional) Also, you can download our pre-extracted ImageNet latents from [here](https://huggingface.co/datasets/hustvl/imagenet256-latents-vave-f16d32-dinov2/tree/main/splits). These are split tar.gz files, please use `cat split_* > imagenet_latents.tar.gz && tar -xf imagenet_latents.tar.gz` to merge and extract them.
 
 ### Train LightningDiT
 
@@ -42,18 +36,17 @@
     
     If checkpointing still doesn't help, we recommend trying smaller model variants. LightningDiT + VA-VAE still shows impressive performance on ``Large`` and ``Base``  scale models. 
     
-    Anyway, free feel to train the model that meets your resources and just enjoy the experiments. Hope LightningDiT won't let you down.
+    Anyway, free feel to train the model that meets your resources and just enjoy the experiments. Hope LightningDiT won't let you down. 😊
 
 ### Inference
 
 - Let's see some demo inference results first before we calculate FID score.
 
     Run the following command:
-
     ```
     bash run_fast_inference.sh configs/lightningdit_xl_vavae_f16d32.yaml
     ```
-    Images will be saved into ``demo_images/demo_samples.png``, e.g. the following one (ONLY 1/21 DiT training epochs!):
+    Images will be saved into ``demo_images/demo_samples.png``, e.g. the following one (it is generated from [the ckpt](https://huggingface.co/hustvl/lightningdit-xl-imagenet256-64ep/blob/main/lightningdit-xl-imagenet256-64ep.pt) that trained less than 5% epochs than DiT 😮):
     <div align="center">
     <img src="../images/demo_samples_64ep.png" alt="Demo Samples 64ep" width="600">
     </div>
