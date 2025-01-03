@@ -46,7 +46,7 @@
     ```
     bash run_fast_inference.sh configs/lightningdit_xl_vavae_f16d32.yaml
     ```
-    Images will be saved into ``demo_images/demo_samples.png``, e.g. the following one (it is generated from [the ckpt](https://huggingface.co/hustvl/lightningdit-xl-imagenet256-64ep/blob/main/lightningdit-xl-imagenet256-64ep.pt) that trained less than 5% epochs than DiT 😮):
+    Images will be saved into ``demo_images/demo_samples.png``, e.g. the following one (it is generated from [the ckpt](https://huggingface.co/hustvl/lightningdit-xl-imagenet256-64ep/blob/main/lightningdit-xl-imagenet256-64ep.pt) that trained less than 5% epochs of DiT 😮):
     <div align="center">
     <img src="../images/demo_samples_64ep.png" alt="Demo Samples 64ep" width="600">
     </div>
