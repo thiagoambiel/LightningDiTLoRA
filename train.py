@@ -1,5 +1,4 @@
-"""
-Training Codes of LightningDiT together with VA-VAE.
+"""Training Codes of LightningDiT together with VA-VAE.
 It envolves advanced training methods, sampling methods, 
 architecture design methods, computation methods. We achieve
 state-of-the-art FID 1.35 on ImageNet 256x256.
@@ -13,7 +12,6 @@ import torch.backends.cuda
 import torch.backends.cudnn
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data import DataLoader
-from torch.utils.tensorboard import SummaryWriter
 
 import math
 import yaml
@@ -35,38 +33,52 @@ from transport import create_transport, Sampler
 from accelerate import Accelerator
 from dataset.img_latent_dataset import ImgLatentDataset
 
+# Add wandb import
+try:
+    import wandb
+except ImportError:
+    wandb = None
+
 def do_train(train_config, accelerator):
     """
     Trains a LightningDiT.
     """
     # Setup accelerator:
     device = accelerator.device
+    rank = accelerator.local_process_index
 
     # Setup an experiment folder:
     if accelerator.is_main_process:
-        os.makedirs(train_config['train']['output_dir'], exist_ok=True)  # Make results folder (holds all experiment subfolders)
+        os.makedirs(train_config['train']['output_dir'], exist_ok=True)  # Make results folder
         experiment_index = len(glob(f"{train_config['train']['output_dir']}/*"))
         model_string_name = train_config['model']['model_type'].replace("/", "-")
         if train_config['train']['exp_name'] is None:
             exp_name = f'{experiment_index:03d}-{model_string_name}'
         else:
             exp_name = train_config['train']['exp_name']
-        experiment_dir = f"{train_config['train']['output_dir']}/{exp_name}"  # Create an experiment folder
+        experiment_dir = f"{train_config['train']['output_dir']}/{exp_name}"  # Create experiment folder
         checkpoint_dir = f"{experiment_dir}/checkpoints"  # Stores saved model checkpoints
         os.makedirs(checkpoint_dir, exist_ok=True)
         logger = create_logger(experiment_dir)
         logger.info(f"Experiment directory created at {experiment_dir}")
-        tensorboard_dir_log = f"tensorboard_logs/{exp_name}"
-        os.makedirs(tensorboard_dir_log, exist_ok=True)
-        writer = SummaryWriter(log_dir=tensorboard_dir_log)
-
-        # add configs to tensorboard
-        config_str=json.dumps(train_config, indent=4)
-        writer.add_text('training configs', config_str, global_step=0)
+        
+        # Initialize wandb
+        if wandb is not None:
+            wandb_config = train_config.get('wandb', {'project': 'LightningDiT'})
+            wandb.init(
+                project=wandb_config.get('project', 'LightningDiT'),
+                name=exp_name,
+                config=train_config,
+                settings=wandb.Settings(start_method="fork")
+            )
+            # Log config directly to wandb
+            wandb.config.update(train_config)
+        else:
+            logger.warning("Weights & Biases not installed. Skipping wandb logging.")
+    
+    # Sync processes before continuing
+    accelerator.wait_for_everyone()
     checkpoint_dir = f"{train_config['train']['output_dir']}/{train_config['train']['exp_name']}/checkpoints"
-
-    # get rank
-    rank = accelerator.local_process_index
 
     # Create model:
     if 'downsample_ratio' in train_config['vae']:
@@ -94,7 +106,7 @@ def do_train(train_config, accelerator):
         if "mlp" in name:
             param.requires_grad = True
 
-    ema = deepcopy(model).to(device)  # Create an EMA of the model for use after training
+    ema = deepcopy(model).to(device)  # Create EMA model
 
     # load pretrained model
     if 'weight_init' in train_config['train']:
@@ -116,7 +128,7 @@ def do_train(train_config, accelerator):
         train_config['transport']['sample_eps'],
         use_cosine_loss = train_config['transport']['use_cosine_loss'] if 'use_cosine_loss' in train_config['transport'] else False,
         use_lognorm = train_config['transport']['use_lognorm'] if 'use_lognorm' in train_config['transport'] else False,
-    )  # default: velocity; 
+    )
     if accelerator.is_main_process:
         logger.info(f"LightningDiT Parameters: {sum(p.numel() for p in model.parameters()) / 1e6:.2f}M")
         logger.info(f"Optimizer: AdamW, lr={train_config['optimizer']['lr']}, beta2={train_config['optimizer']['beta2']}")
@@ -162,8 +174,8 @@ def do_train(train_config, accelerator):
             logger.info(f"Validation Dataset contains {len(valid_dataset):,} images {train_config['data']['valid_path']}")
 
     # Prepare models for training:
-    update_ema(ema, model.module, decay=0)  # Ensure EMA is initialized with synced weights
-    model.train()  # important! This enables embedding dropout for classifier-free guidance
+    update_ema(ema, model.module, decay=0)  # Initialize EMA with synced weights
+    model.train()  # important! Enables embedding dropout for classifier-free guidance
     ema.eval()  # EMA model should always be in eval mode
     
     train_config['train']['resume'] = train_config['train']['resume'] if 'resume' in train_config['train'] else False
@@ -186,7 +198,7 @@ def do_train(train_config, accelerator):
                 logger.info("No checkpoint found. Starting training from scratch.")
     model, opt, loader = accelerator.prepare(model, opt, loader)
 
-    # Variables for monitoring/logging purposes:
+    # Variables for monitoring/logging:
     if not train_config['train']['resume']:
         train_steps = 0
     log_steps = 0
@@ -235,9 +247,19 @@ def do_train(train_config, accelerator):
                 avg_loss = torch.tensor(running_loss / log_steps, device=device)
                 dist.all_reduce(avg_loss, op=dist.ReduceOp.SUM)
                 avg_loss = avg_loss.item() / dist.get_world_size()
+                
                 if accelerator.is_main_process:
                     logger.info(f"(step={train_steps:07d}) Train Loss: {avg_loss:.4f}, Train Steps/Sec: {steps_per_sec:.2f}")
-                    writer.add_scalar('Loss/train', avg_loss, train_steps)
+                    
+                    # Log to wandb
+                    if wandb is not None:
+                        log_data = {
+                            'train/loss': avg_loss,
+                            'train/steps_per_sec': steps_per_sec,
+                            'train/global_step': train_steps
+                        }
+                        wandb.log(log_data)
+                
                 # Reset monitoring variables:
                 running_loss = 0
                 log_steps = 0
@@ -254,8 +276,11 @@ def do_train(train_config, accelerator):
                     }
                     checkpoint_path = f"{checkpoint_dir}/{train_steps:07d}.pt"
                     torch.save(checkpoint, checkpoint_path)
-                    if accelerator.is_main_process:
-                        logger.info(f"Saved checkpoint to {checkpoint_path}")
+                    logger.info(f"Saved checkpoint to {checkpoint_path}")
+                    
+                    # Optionally save model to wandb
+                    if wandb is not None:
+                        wandb.save(checkpoint_path)
                 dist.barrier()
 
                 # Evaluate on validation set
@@ -265,22 +290,50 @@ def do_train(train_config, accelerator):
                     val_loss = evaluate(model, valid_loader, device, transport, (0.0, 1.0))
                     dist.all_reduce(val_loss, op=dist.ReduceOp.SUM)
                     val_loss = val_loss.item() / dist.get_world_size()
+                    
                     if accelerator.is_main_process:
                         logger.info(f"Validation Loss: {val_loss:.4f}")
-                        writer.add_scalar('Loss/validation', val_loss, train_steps)
-                    model.train()
+                        
+                        # Log validation loss to wandb
+                        if wandb is not None:
+                            wandb.log({
+                                'validation/loss': val_loss,
+                                'train/global_step': train_steps
+                            })
+                model.train()
+                
             if train_steps >= train_config['train']['max_steps']:
                 break
         if train_steps >= train_config['train']['max_steps']:
             break
 
     if accelerator.is_main_process:
+        if wandb is not None:
+            wandb.finish()
         logger.info("Done!")
 
     return accelerator
 
+@torch.no_grad()
+def evaluate(model, valid_loader, device, transport, ts):
+    """Evaluate model on validation set"""
+    model.eval()
+    total_loss = 0
+    count = 0
+    for x, y in valid_loader:
+        x = x.to(device)
+        y = y.to(device)
+        model_kwargs = dict(y=y)
+        loss_dict = transport.training_losses(model, x, model_kwargs)
+        if 'cos_loss' in loss_dict:
+            loss = loss_dict["loss"].mean() + loss_dict["cos_loss"].mean()
+        else:
+            loss = loss_dict["loss"].mean()
+        total_loss += loss.item() * x.shape[0]
+        count += x.shape[0]
+    return torch.tensor(total_loss / count, device=device)
+
 def load_weights_with_shape_check(model, checkpoint, rank=0):
-    
     model_state_dict = model.state_dict()
     # check shape and load weights
     for name, param in checkpoint['model'].items():
@@ -289,9 +342,6 @@ def load_weights_with_shape_check(model, checkpoint, rank=0):
                 model_state_dict[name].copy_(param)
             elif name == 'x_embedder.proj.weight':
                 # special case for x_embedder.proj.weight
-                # the pretrained model is trained with 256x256 images
-                # we can load the weights by resizing the weights
-                # and keep the first 3 channels the same
                 weight = torch.zeros_like(model_state_dict[name])
                 weight[:, :16] = param[:, :16]
                 model_state_dict[name] = weight
@@ -304,7 +354,6 @@ def load_weights_with_shape_check(model, checkpoint, rank=0):
                 print(f"Parameter '{name}' not found in model, skipping.")
     # load state dict
     model.load_state_dict(model_state_dict, strict=False)
-    
     return model
 
 @torch.no_grad()
@@ -317,9 +366,7 @@ def update_ema(ema_model, model, decay=0.9999):
 
     for name, param in model_params.items():
         name = name.replace("module.", "")
-        # TODO: Consider applying only to params that require_grad to avoid small numerical changes of pos_embed
         ema_params[name].mul_(decay).add_(param.data, alpha=1 - decay)
-
 
 def requires_grad(model, flag=True):
     """
@@ -358,4 +405,9 @@ if __name__ == "__main__":
 
     accelerator = Accelerator()
     train_config = load_config(args.config)
+    
+    # Ensure wandb configuration exists
+    if 'wandb' not in train_config:
+        train_config['wandb'] = {'project': 'LightningDiT'}
+    
     do_train(train_config, accelerator)
