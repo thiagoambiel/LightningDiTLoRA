@@ -59,8 +59,8 @@ def do_train(train_config, accelerator):
         experiment_dir = f"{train_config['train']['output_dir']}/{exp_name}"  # Create experiment folder
         checkpoint_dir = f"{experiment_dir}/checkpoints"  # Stores saved model checkpoints
         os.makedirs(checkpoint_dir, exist_ok=True)
-        logger = create_logger(experiment_dir)
-        logger.info(f"Experiment directory created at {experiment_dir}")
+
+        print(f"Experiment directory created at {experiment_dir}")
         
         # Initialize wandb
         if wandb is not None:
@@ -74,7 +74,7 @@ def do_train(train_config, accelerator):
             # Log config directly to wandb
             wandb.config.update(train_config)
         else:
-            logger.warning("Weights & Biases not installed. Skipping wandb logging.")
+            print("Weights & Biases not installed. Skipping wandb logging.")
     
     # Sync processes before continuing
     accelerator.wait_for_everyone()
@@ -116,7 +116,7 @@ def do_train(train_config, accelerator):
         model = load_weights_with_shape_check(model, checkpoint, rank=rank)
         ema = load_weights_with_shape_check(ema, checkpoint, rank=rank)
         if accelerator.is_main_process:
-            logger.info(f"Loaded pretrained model from {train_config['train']['weight_init']}")
+            print(f"Loaded pretrained model from {train_config['train']['weight_init']}")
     requires_grad(ema, False)
     
     model = DDP(model.to(device), device_ids=[rank])
@@ -130,10 +130,10 @@ def do_train(train_config, accelerator):
         use_lognorm = train_config['transport']['use_lognorm'] if 'use_lognorm' in train_config['transport'] else False,
     )
     if accelerator.is_main_process:
-        logger.info(f"LightningDiT Parameters: {sum(p.numel() for p in model.parameters()) / 1e6:.2f}M")
-        logger.info(f"Optimizer: AdamW, lr={train_config['optimizer']['lr']}, beta2={train_config['optimizer']['beta2']}")
-        logger.info(f'Use lognorm sampling: {train_config["transport"]["use_lognorm"]}')
-        logger.info(f'Use cosine loss: {train_config["transport"]["use_cosine_loss"]}')
+        print(f"LightningDiT Parameters: {sum(p.numel() for p in model.parameters()) / 1e6:.2f}M")
+        print(f"Optimizer: AdamW, lr={train_config['optimizer']['lr']}, beta2={train_config['optimizer']['beta2']}")
+        print(f'Use lognorm sampling: {train_config["transport"]["use_lognorm"]}')
+        print(f'Use cosine loss: {train_config["transport"]["use_cosine_loss"]}')
     opt = torch.optim.AdamW(model.parameters(), lr=train_config['optimizer']['lr'], weight_decay=0, betas=(0.9, train_config['optimizer']['beta2']))
     
     # Setup data
@@ -153,8 +153,8 @@ def do_train(train_config, accelerator):
         drop_last=True
     )
     if accelerator.is_main_process:
-        logger.info(f"Dataset contains {len(dataset):,} images {train_config['data']['data_path']}")
-        logger.info(f"Batch size {batch_size_per_gpu} per gpu, with {global_batch_size} global batch size")
+        print(f"Dataset contains {len(dataset):,} images {train_config['data']['data_path']}")
+        print(f"Batch size {batch_size_per_gpu} per gpu, with {global_batch_size} global batch size")
     
     if 'valid_path' in train_config['data']:
         valid_dataset = ImgLatentDataset(
@@ -171,7 +171,7 @@ def do_train(train_config, accelerator):
             drop_last=True
         )
         if accelerator.is_main_process:
-            logger.info(f"Validation Dataset contains {len(valid_dataset):,} images {train_config['data']['valid_path']}")
+            print(f"Validation Dataset contains {len(valid_dataset):,} images {train_config['data']['valid_path']}")
 
     # Prepare models for training:
     update_ema(ema, model.module, decay=0)  # Initialize EMA with synced weights
@@ -192,10 +192,10 @@ def do_train(train_config, accelerator):
             ema.load_state_dict(checkpoint['ema'])
             train_steps = int(latest_checkpoint.split('/')[-1].split('.')[0])
             if accelerator.is_main_process:
-                logger.info(f"Resuming training from checkpoint: {latest_checkpoint}")
+                print(f"Resuming training from checkpoint: {latest_checkpoint}")
         else:
             if accelerator.is_main_process:
-                logger.info("No checkpoint found. Starting training from scratch.")
+                print("No checkpoint found. Starting training from scratch.")
     model, opt, loader = accelerator.prepare(model, opt, loader)
 
     # Variables for monitoring/logging:
@@ -206,7 +206,7 @@ def do_train(train_config, accelerator):
     start_time = time()
     use_checkpoint = train_config['train']['use_checkpoint'] if 'use_checkpoint' in train_config['train'] else True
     if accelerator.is_main_process:
-        logger.info(f"Using checkpointing: {use_checkpoint}")
+        print(f"Using checkpointing: {use_checkpoint}")
 
     while True:
         for x, y in loader:
@@ -249,7 +249,7 @@ def do_train(train_config, accelerator):
                 avg_loss = avg_loss.item() / dist.get_world_size()
                 
                 if accelerator.is_main_process:
-                    logger.info(f"(step={train_steps:07d}) Train Loss: {avg_loss:.4f}, Train Steps/Sec: {steps_per_sec:.2f}")
+                    print(f"(step={train_steps:07d}) Train Loss: {avg_loss:.4f}, Train Steps/Sec: {steps_per_sec:.2f}")
                     
                     # Log to wandb
                     if wandb is not None:
@@ -276,7 +276,7 @@ def do_train(train_config, accelerator):
                     }
                     checkpoint_path = f"{checkpoint_dir}/{train_steps:07d}.pt"
                     torch.save(checkpoint, checkpoint_path)
-                    logger.info(f"Saved checkpoint to {checkpoint_path}")
+                    print(f"Saved checkpoint to {checkpoint_path}")
                     
                     # Optionally save model to wandb
                     if wandb is not None:
@@ -286,13 +286,13 @@ def do_train(train_config, accelerator):
                 # Evaluate on validation set
                 if 'valid_path' in train_config['data']:
                     if accelerator.is_main_process:
-                        logger.info(f"Start evaluating at step {train_steps}")
+                        print(f"Start evaluating at step {train_steps}")
                     val_loss = evaluate(model, valid_loader, device, transport, (0.0, 1.0))
                     dist.all_reduce(val_loss, op=dist.ReduceOp.SUM)
                     val_loss = val_loss.item() / dist.get_world_size()
                     
                     if accelerator.is_main_process:
-                        logger.info(f"Validation Loss: {val_loss:.4f}")
+                        print(f"Validation Loss: {val_loss:.4f}")
                         
                         # Log validation loss to wandb
                         if wandb is not None:
@@ -310,7 +310,7 @@ def do_train(train_config, accelerator):
     if accelerator.is_main_process:
         if wandb is not None:
             wandb.finish()
-        logger.info("Done!")
+        print("Done!")
 
     return accelerator
 
@@ -379,21 +379,6 @@ def load_config(config_path):
     with open(config_path, "r") as file:
         config = yaml.safe_load(file)
     return config
-
-def create_logger(logging_dir):
-    """
-    Create a logger that writes to a log file and stdout.
-    """
-    
-    logging.basicConfig(
-        level=logging.INFO,
-        format='[\033[34m%(asctime)s\033[0m] %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S',
-    )
-
-    logger = logging.getLogger(__name__)
-
-    return logger
 
 if __name__ == "__main__":
     # read config
