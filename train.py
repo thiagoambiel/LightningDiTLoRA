@@ -33,7 +33,7 @@ from diffusers.models import AutoencoderKL
 from models.lightningdit import LightningDiT_models
 from transport import create_transport, Sampler
 from accelerate import Accelerator
-from datasets.img_latent_dataset import ImgLatentDataset
+from dataset.img_latent_dataset import ImgLatentDataset
 
 def do_train(train_config, accelerator):
     """
@@ -86,6 +86,13 @@ def do_train(train_config, accelerator):
         in_channels=train_config['model']['in_chans'] if 'in_chans' in train_config['model'] else 4,
         use_checkpoint=train_config['model']['use_checkpoint'] if 'use_checkpoint' in train_config['model'] else False,
     )
+
+    for param in model.parameters(): 
+        param.requires_grad = False
+
+    for name, param in model.blocks.named_parameters():
+        if "mlp" in name:
+            param.requires_grad = True
 
     ema = deepcopy(model).to(device)  # Create an EMA of the model for use after training
 

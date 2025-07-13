@@ -9,7 +9,7 @@ import argparse
 import os
 from safetensors.torch import save_file
 from datetime import datetime
-from datasets.img_latent_dataset import ImgLatentDataset
+from dataset.img_latent_dataset import ImgLatentDataset
 from tokenizer.vavae import VA_VAE
 
 def main(args):

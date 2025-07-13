@@ -21,7 +21,7 @@ import torchvision
 from tokenizer.vavae import VA_VAE
 from models.lightningdit import LightningDiT_models
 from transport import create_transport, Sampler
-from datasets.img_latent_dataset import ImgLatentDataset
+from dataset.img_latent_dataset import ImgLatentDataset
 
 # sample function
 def do_sample(train_config, accelerator, ckpt_path=None, cfg_scale=None, model=None, vae=None, demo_sample_mode=False):
