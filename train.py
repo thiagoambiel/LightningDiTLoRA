@@ -101,16 +101,21 @@ def do_train(train_config, accelerator):
         use_checkpoint=train_config['model']['use_checkpoint'] if 'use_checkpoint' in train_config['model'] else False,
     )
 
-    for param in model.parameters(): 
-        param.requires_grad = False
-
+    
     for name, param in model.blocks.named_parameters():
-        if any([layer in name for layer in ['qkv', 'proj']]):
-            param.requires_grad = True
+        if any([layer in name for layer in ['mlp']]):
+            param.requires_grad = False
+
+    # for param in model.parameters(): 
+    #     param.requires_grad = False
+
+    # for name, param in model.blocks.named_parameters():
+    #     if any([layer in name for layer in ['qkv', 'proj']]):
+    #         param.requires_grad = True
         
-    for module in [model.x_embedder, model.y_embedder, model.t_embedder, model.final_layer]:
-        for param in module.parameters(): 
-            param.requires_grad = True
+    # for module in [model.x_embedder, model.y_embedder, model.t_embedder, model.final_layer]:
+    #     for param in module.parameters(): 
+    #         param.requires_grad = True
 
     ema = deepcopy(model).to(device)  # Create EMA model
 
