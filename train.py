@@ -155,6 +155,11 @@ def do_train(train_config, accelerator):
         latent_norm=train_config['data']['latent_norm'] if 'latent_norm' in train_config['data'] else False,
         latent_multiplier=train_config['data']['latent_multiplier'] if 'latent_multiplier' in train_config['data'] else 0.18215,
     )
+
+    wandb.save("latents_stats.pt")
+
+    exit()
+
     batch_size_per_gpu = int(np.round(train_config['train']['global_batch_size'] / accelerator.num_processes))
     global_batch_size = batch_size_per_gpu * accelerator.num_processes
     loader = DataLoader(
@@ -243,12 +248,16 @@ def do_train(train_config, accelerator):
                 loss = loss_dict["cos_loss"].mean() + mse_loss
             else:
                 loss = loss_dict["loss"].mean()
+
             opt.zero_grad()
             accelerator.backward(loss)
+
             if 'max_grad_norm' in train_config['optimizer']:
                 if accelerator.sync_gradients:
                     accelerator.clip_grad_norm_(model.parameters(), train_config['optimizer']['max_grad_norm'])
+
             opt.step()
+
             update_ema(ema, model.module)
 
             # Log loss values:
