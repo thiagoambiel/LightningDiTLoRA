@@ -33,6 +33,8 @@ from transport import create_transport, Sampler
 from accelerate import Accelerator
 from dataset.img_latent_dataset import ImgLatentDataset
 
+import bitsandbytes as bnb
+
 # Add wandb import
 try:
     import wandb
@@ -134,8 +136,10 @@ def do_train(train_config, accelerator):
         print(f"Optimizer: AdamW, lr={train_config['optimizer']['lr']}, beta2={train_config['optimizer']['beta2']}")
         print(f'Use lognorm sampling: {train_config["transport"]["use_lognorm"]}')
         print(f'Use cosine loss: {train_config["transport"]["use_cosine_loss"]}')
-    opt = torch.optim.AdamW(model.parameters(), lr=train_config['optimizer']['lr'], weight_decay=0, betas=(0.9, train_config['optimizer']['beta2']))
-    
+
+    # opt = torch.optim.AdamW(model.parameters(), lr=train_config['optimizer']['lr'], weight_decay=0, betas=(0.9, train_config['optimizer']['beta2']))
+    opt = bnb.optim.Adam8bit(model.parameters(), lr=train_config['optimizer']['lr'], weight_decay=0, betas=(0.9, train_config['optimizer']['beta2']))
+
     # Setup data
     dataset = ImgLatentDataset(
         data_dir=train_config['data']['data_path'],
