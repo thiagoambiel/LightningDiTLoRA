@@ -103,7 +103,7 @@ def do_train(train_config, accelerator):
         param.requires_grad = False
 
     for name, param in model.blocks.named_parameters():
-        if "mlp" in name:
+        if "qkv" in name:
             param.requires_grad = True
 
     ema = deepcopy(model).to(device)  # Create EMA model
