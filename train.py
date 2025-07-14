@@ -223,14 +223,21 @@ def do_train(train_config, accelerator):
 
     while True:
         for x, y in loader:
+
             if accelerator.mixed_precision == 'no':
                 x = x.to(device, dtype=torch.float32)
                 y = y
             else:
                 x = x.to(device)
                 y = y.to(device)
+
             model_kwargs = dict(y=y)
-            loss_dict = transport.training_losses(model, x, model_kwargs)
+            
+            try:
+                loss_dict = transport.training_losses(model, x, model_kwargs)
+            except ValueError:
+                continue
+            
             if 'cos_loss' in loss_dict:
                 mse_loss = loss_dict["loss"].mean()
                 loss = loss_dict["cos_loss"].mean() + mse_loss
