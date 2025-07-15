@@ -156,9 +156,10 @@ def do_train(train_config, accelerator):
         latent_multiplier=train_config['data']['latent_multiplier'] if 'latent_multiplier' in train_config['data'] else 0.18215,
     )
 
-    wandb.save("latents_stats.pt")
 
-    wandb.finish()
+    if wandb:
+        wandb.save("latents_stats.pt")
+        wandb.finish()
 
     exit()
 
