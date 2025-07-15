@@ -158,6 +158,8 @@ def do_train(train_config, accelerator):
 
     wandb.save("latents_stats.pt")
 
+    wandb.finish()
+
     exit()
 
     batch_size_per_gpu = int(np.round(train_config['train']['global_batch_size'] / accelerator.num_processes))
